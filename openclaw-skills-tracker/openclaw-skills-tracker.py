@@ -586,18 +586,7 @@ def main():
     # 飞书（完整版）
     feishu_msg = send_to_feishu(all_skills, installed_skills, trend)
     print(f"\n📱 飞书消息长度: {len(feishu_msg)} 字符")
-    
-    # 发送飞书
-    from feishu import feishu_im_send_message
-    try:
-        feishu_im_send_message(
-            msg_type="text",
-            receive_id="ou_4866c83c7eca1d14a8591c85ae0c2017",
-            content=json.dumps({"text": feishu_msg})
-        )
-        print("✅ 飞书消息已发送")
-    except Exception as e:
-        print(f"⚠️ 飞书发送失败: {e}")
+    print("💡 飞书消息已准备好，可通过 feishu_im_send_message 工具发送")
     
     print("\n✨ 完成!")
 
