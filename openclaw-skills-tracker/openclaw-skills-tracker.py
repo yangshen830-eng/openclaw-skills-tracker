@@ -428,7 +428,7 @@ def generate_md(skills_list, installed_skills, trend):
 
 
 def send_to_feishu(skills_list, installed_skills, trend):
-    """发送飞书通知（完整版）"""
+    """发送飞书通知（完整版 - 包含所有内容和链接）"""
     today = datetime.now().strftime("%Y-%m-%d")
     
     msg = f"# 🦔 OpenClaw Skills 每日动态 - {today}\n\n"
@@ -437,20 +437,14 @@ def send_to_feishu(skills_list, installed_skills, trend):
     # 概览
     msg += f"## 📊 今日概览\n"
     msg += f"- 🆕 新增 Skills: **{len(trend.get('new', []))}** 个\n"
-    msg += f"- ✅ 已安装: **{len(installed_skills)}** 个\n\n"
+    msg += f"- ✅ 你已安装: **{len(installed_skills)}** 个\n"
+    msg += f"- 📡 数据来源: ClawdHub, GitHub\n\n"
     
-    # 新增
-    if trend.get('new'):
-        msg += "## 🆕 今日新增\n\n"
-        for name in trend['new'][:10]:
-            msg += f"- {name}\n"
-        msg += "\n"
-    
-    # 热门
+    # 热门 Skills 完整列表（所有20个）
     sorted_skills = sorted(skills_list, 
         key=lambda x: (x.get('downloads', 0), x.get('stars', 0)), reverse=True)
     
-    msg += "## 🔥 热门 Skills 详细列表\n\n"
+    msg += "## 🔥 热门 Skills 完整列表 (共{}个)\n\n".format(len(sorted_skills))
     
     for i, skill in enumerate(sorted_skills, 1):
         is_installed = "✅ 已安装" if skill['name'] in installed_skills else "❌ 未安装"
@@ -462,34 +456,37 @@ def send_to_feishu(skills_list, installed_skills, trend):
             metrics.append(f"{skill['downloads']}次安装")
         if skill.get('stars'):
             metrics.append(f"{skill['stars']}⭐")
-        metrics_str = " | ".join(metrics) if metrics else "暂无数据"
+        metrics_str = " | ".join(metrics) if metrics else "暂无"
         
         tags = ', '.join(skill.get('tags', ['其他']))
         deps = ', '.join(skill.get('dependencies', ['无']))
         
+        # 仓库链接
+        repo_url = skill.get('url', '')
+        
         msg += f"### {i}. {skill['name']}\n"
-        msg += f"- **分类**: {tags}\n"
-        msg += f"- **功能**: {skill.get('description', '暂无描述')}\n"
-        msg += f"- **热门度**: {metrics_str}\n"
-        msg += f"- **状态**: {is_installed}\n"
-        msg += f"- **依赖**: {deps}\n"
+        msg += f"🔗 仓库: {repo_url}\n"
+        msg += f"📂 分类: {tags}\n"
+        msg += f"📝 功能: {skill.get('description', '暂无描述')}\n"
+        msg += f"🔥 热门: {metrics_str}\n"
+        msg += f"📦 状态: {is_installed}\n"
+        msg += f"🔧 依赖: {deps}\n"
         
         if similarities:
             sim_names = ', '.join([s['name'] for s in similarities[:2]])
-            msg += f"- **相似**: {sim_names}\n"
+            msg += f"🔍 相似: {sim_names}\n"
         
-        msg += f"- **安装**: `{skill.get('install_cmd', 'N/A')}`\n\n"
+        msg += f"💾 安装: `{skill.get('install_cmd', 'N/A')}`\n\n"
+        msg += f"---\n\n"
     
-    # 已安装
-    msg += "## ✅ 你已安装的 Skills\n\n"
-    for name, info in list(installed_skills.items())[:20]:
-        desc = info.get('description', '')[:30]
+    # 已安装 Skills 完整列表
+    msg += "## ✅ 你已安装的 Skills (共{}个)\n\n".format(len(installed_skills))
+    for name, info in installed_skills.items():
+        desc = info.get('description', '')[:50] if info.get('description') else '暂无描述'
         msg += f"- **{name}**: {desc}...\n"
     
-    if len(installed_skills) > 20:
-        msg += f"- ...还有 {len(installed_skills) - 20} 个\n"
-    
-    msg += f"\n---\n📋 完整报告: https://github.com/yangshen830-eng/openclaw-skills-tracker"
+    msg += f"\n---\n📋 完整报告: https://github.com/yangshen830-eng/openclaw-skills-tracker\n"
+    msg += f"💡 提示: 每天12:00自动更新"
     
     return msg
 
